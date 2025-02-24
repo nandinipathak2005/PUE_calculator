@@ -1,114 +1,89 @@
-import Image from "next/image";
-import { Geist, Geist_Mono } from "next/font/google";
+import React, { useState } from "react";
+import { Bar } from "react-chartjs-2";
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from "chart.js";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const PUECalculator = () => {
+  const [workload, setWorkload] = useState("");
+  const [powerUsage, setPowerUsage] = useState("");
+  const [pue, setPUE] = useState(1.5); // Default value for PUE
+  const [results, setResults] = useState(null);
 
-export default function Home() {
+  const calculateImpact = () => {
+    if (!workload || !powerUsage || !pue || pue <= 0 || workload < 0 || powerUsage < 0) {
+      alert("Please enter valid positive values.");
+      return;
+    }
+
+    // Industry-standard PUE values
+    const traditionalPUE = 2.0; // Traditional data centers
+    const greenPUE = 1.2; // Green data centers
+    const nonConventionalPUE = 1.5; // Mixed-energy approach
+
+    const traditionalImpact = workload * powerUsage * traditionalPUE;
+    const greenImpact = workload * powerUsage * greenPUE;
+    const nonConventionalImpact = workload * powerUsage * nonConventionalPUE;
+
+    setResults({
+      traditional: traditionalImpact.toFixed(2),
+      green: greenImpact.toFixed(2),
+      nonConventional: nonConventionalImpact.toFixed(2),
+    });
+  };
+
   return (
-    <div
-      className={`${geistSans.variable} ${geistMono.variable} grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]`}
-    >
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              pages/index.js
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div style={{ backgroundColor: "black", color: "white", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+      <h1 style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center" }}>
+        ⚡ Data Center PUE Calculator
+      </h1>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      <div style={{ backgroundColor: "#222", padding: "20px", borderRadius: "10px", boxShadow: "0 0 10px #39FF14", width: "90%", maxWidth: "400px" }}>
+        <label style={{ display: "block", marginBottom: "10px" }}>Workload (kW):</label>
+        <input type="number" value={workload} min="0" onChange={(e) => setWorkload(Math.max(0, e.target.value))}
+          style={{ width: "100%", padding: "10px", marginBottom: "10px", borderRadius: "5px", border: "1px solid #39FF14", backgroundColor: "#111", color: "white" }} />
+        
+        <label style={{ display: "block", marginBottom: "10px" }}>Power Usage (kWh):</label>
+        <input type="number" value={powerUsage} min="0" onChange={(e) => setPowerUsage(Math.max(0, e.target.value))}
+          style={{ width: "100%", padding: "10px", marginBottom: "10px", borderRadius: "5px", border: "1px solid #39FF14", backgroundColor: "#111", color: "white" }} />
+        
+        <button onClick={calculateImpact} style={{ width: "100%", padding: "10px", borderRadius: "5px", border: "none", backgroundColor: "#39FF14", color: "black", fontWeight: "bold", cursor: "pointer" }}>
+          Calculate Impact
+        </button>
+
+        {results && (
+          <div style={{ marginTop: "20px", padding: "10px", backgroundColor: "#111", borderRadius: "5px", color: "#39FF14", textAlign: "center" }}>
+            <h3 style={{ fontWeight: "bold", marginBottom: "10px" }}>🌍 Energy Consumption</h3>
+            <p>🔥 Traditional (PUE 2.0): <span style={{ color: "red" }}>{results.traditional}</span> kWh</p>
+            <p>🌿 Green (PUE 1.2): <span style={{ color: "lightgreen" }}>{results.green}</span> kWh</p>
+            <p>📀 Non-Conventional (PUE 1.5): <span style={{ color: "yellow" }}>{results.nonConventional}</span> kWh</p>
+          </div>
+        )}
+      </div>
+      
+      {results && (
+        <div style={{ width: "80%", maxWidth: "600px", marginTop: "20px" }}>
+          <Bar 
+            data={{
+              labels: ["Traditional", "Green", "Non-Conventional"],
+              datasets: [{
+                label: "Energy Consumption (kWh)",
+                data: [results.traditional, results.green, results.nonConventional],
+                backgroundColor: ["red", "lightgreen", "yellow"],
+              }],
+            }}
+            options={{
+              responsive: true,
+              plugins: {
+                legend: { display: false },
+                title: { display: true, text: "Data Center Energy Consumption" },
+              },
+            }}
+          />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      )}
     </div>
   );
-}
+};
+
+export default PUECalculator;
